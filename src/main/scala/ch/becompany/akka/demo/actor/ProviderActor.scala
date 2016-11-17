@@ -6,9 +6,6 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import ch.becompany.akka.demo.Ingredients
 import ch.becompany.akka.demo.Ingredients._
 
-/**
-  * Created by jpuerto on 11/11/16.
-  */
 class ProviderActor extends Actor with ActorLogging {
   import ProviderActor._
 

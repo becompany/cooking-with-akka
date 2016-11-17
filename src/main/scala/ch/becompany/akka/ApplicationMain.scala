@@ -12,9 +12,6 @@ import scala.concurrent.duration.Duration
 import scala.util.{Failure, Random, Success, Try}
 
 
-/**
-  * Created by jpuerto on 11/11/16.
-  */
 object ApplicationMain extends App {
   val system = ActorSystem("BreakfastDemo")
   val streetActor = system.actorOf(StreetActor.props(15), "streetActor")

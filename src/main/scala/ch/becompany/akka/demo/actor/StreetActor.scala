@@ -4,9 +4,6 @@ import scala.collection.mutable.Set
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import ch.becompany.akka.demo.actor.StreetActor.{Initialize, LeaveQueue}
 
-/**
-  * Created by jpuerto on 11/11/16.
-  */
 class StreetActor(val maximum: Int = 15, val barsNumber: Int = 1) extends Actor with ActorLogging {
   var bars = scala.collection.mutable.ArrayBuffer.empty[ActorRef]
   var queue = Set[ActorRef]()

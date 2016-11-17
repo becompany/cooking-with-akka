@@ -14,9 +14,6 @@ import ch.becompany.akka.demo.actor.StreetActor.LeaveQueue
 import scala.concurrent.Await
 import scala.util.{Failure, Success}
 
-/**
-  * Created by jpuerto on 11/11/16.
-  */
 class CustomerActor(val name: String) extends Actor with ActorLogging {
   import CustomerActor._
   implicit val timeout = Timeout(5 seconds)

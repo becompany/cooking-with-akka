@@ -5,9 +5,6 @@ import ch.becompany.akka.demo.actor.ProviderActor
 
 import scala.util.Random
 
-/**
-  * Created by jpuerto on 11/11/16.
-  */
 class SupplierService(val providerActor: ActorRef) extends Runnable {
   val random = new Random(12345)
 

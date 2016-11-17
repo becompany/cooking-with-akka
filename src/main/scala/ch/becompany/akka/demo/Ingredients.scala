@@ -1,8 +1,5 @@
 package ch.becompany.akka.demo
 
-/**
-  * Created by jpuerto on 11/11/16.
-  */
 abstract class Ingredients(val name: String)
 
 object Ingredients {

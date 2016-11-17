@@ -12,9 +12,6 @@ import ch.becompany.akka.demo.actor.ProviderActor.Request
 
 import scala.util.{Failure, Success}
 
-/**
-  * Created by jpuerto on 11/11/16.
-  */
 class ChefActor extends Actor with ActorLogging {
 
   var providerActor: ActorRef = ActorRef.noSender
@@ -25,6 +22,7 @@ class ChefActor extends Actor with ActorLogging {
     case Provider(providerActor) => this.providerActor = providerActor
     case WaiterActor.BreakfastRequest => {
       val waiterActor = sender()
+      log.info("The chef got a request.")
       providerActor ? Request(Seq(Coffee, Water, Egg)) onComplete {
         case Success(_) =>
           log.info("Breakfast elaborated.")

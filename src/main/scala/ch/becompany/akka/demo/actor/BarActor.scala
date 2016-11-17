@@ -14,12 +14,10 @@ import scala.util.{Failure, Success}
 import scala.concurrent.duration._
 import akka.util.Timeout
 import akka.pattern.ask
+import akka.routing.RoundRobinPool
 import ch.becompany.akka.demo.actor.ChefActor.Breakfast
 
 
-/**
-  * Created by jpuerto on 11/11/16.
-  */
 class BarActor extends Actor with ActorLogging {
   import Ingredients._
 
@@ -31,7 +29,7 @@ class BarActor extends Actor with ActorLogging {
 
   val barReferences: BarReferences = new BarReferences(
     context.actorOf(ChefActor.props),
-    context.actorOf(WaiterActor.props))(ActorRef.noSender)
+    context.actorOf(RoundRobinPool(2).props(WaiterActor.props)))(ActorRef.noSender)
 
   override def receive = {
     case Initialize =>

@@ -12,9 +12,6 @@ import ch.becompany.akka.demo.actor.BarActor.ChefRequest
 import scala.util.{Failure, Success}
 
 
-/**
-  * Created by jpuerto on 11/11/16.
-  */
 class WaiterActor extends Actor with ActorLogging {
 
   implicit val timeout = Timeout(5 seconds)
