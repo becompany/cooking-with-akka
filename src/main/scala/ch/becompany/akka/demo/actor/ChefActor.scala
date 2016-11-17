@@ -24,7 +24,7 @@ class ChefActor extends Actor with ActorLogging {
       context.parent ? IngredientsRequest(plate.ingredients) onComplete {
         case Success(_) =>
           log.info("Breakfast elaborated.")
-          waiterActor ! ChefActor.Breakfast
+          waiterActor ! plate
         case Failure(ex) =>
           log.error("Timeout requesting the breakfast ingredients.", ex)
           waiterActor ! akka.actor.Status.Failure(ex)
@@ -36,6 +36,5 @@ class ChefActor extends Actor with ActorLogging {
 
 object ChefActor {
   val props = Props[ChefActor]
-  case object Breakfast
   case class IngredientsRequest(val ingredients: Seq[Ingredients])
 }

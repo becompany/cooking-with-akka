@@ -23,7 +23,7 @@ class WaiterActor extends Actor with ActorLogging {
         case Success(chefActor: ActorRef) =>
           log.info("The waiter got the assigned chef.")
           chefActor ? Elaborate(BarActor.Menu.Breakfast) onComplete {
-            case Success(_) => customer ! ChefActor.Breakfast
+            case Success(breakfast) => customer ! breakfast
             case Failure(ex) => {
               log.error("Error dispatching the breakfast.", ex)
               customer ! akka.actor.Status.Failure(ex)
