@@ -2,12 +2,11 @@ package ch.becompany.akka.demo.actor
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import akka.actor._
-import ch.becompany.akka.demo.actor.WaiterActor.BreakfastRequest
+import ch.becompany.akka.demo.actor.WaiterActor.{ChefRequest, Elaborate}
 
 import scala.concurrent.duration._
 import akka.util.Timeout
 import akka.pattern.ask
-import ch.becompany.akka.demo.actor.BarActor.ChefRequest
 
 import scala.util.{Failure, Success}
 
@@ -17,23 +16,24 @@ class WaiterActor extends Actor with ActorLogging {
   implicit val timeout = Timeout(5 seconds)
 
   override def receive = {
-    case BreakfastRequest => {
-      log.info("Waiter got a breakfast request from '{}'.", sender().path.name)
-      val future = context.parent ? ChefRequest
+    case CustomerActor.Request(name, request) => {
+      log.info("Waiter got a breakfast request from '{}'.", name)
       val customer = sender()
-      future.onComplete({
-        case Success(chefActor: ActorRef) => chefActor ? BreakfastRequest onComplete {
-          case Success(_) => customer ! ChefActor.Breakfast
-          case Failure(ex) => {
-            log.error("Error dispatching the breakfast.", ex)
-            customer ! akka.actor.Status.Failure(ex)
-          }
+      context.parent ? ChefRequest onComplete {
+        case Success(chefActor: ActorRef) =>
+          log.info("The waiter got the assigned chef.")
+          chefActor ? Elaborate(BarActor.Menu.Breakfast) onComplete {
+            case Success(_) => customer ! ChefActor.Breakfast
+            case Failure(ex) => {
+              log.error("Error dispatching the breakfast.", ex)
+              customer ! akka.actor.Status.Failure(ex)
+            }
         }
         case Failure(ex) => {
           log.error("Error requesting a free chef.", ex)
           customer ! akka.actor.Status.Failure(ex)
         }
-      })
+      }
     }
     case _ => Unit
   }
@@ -41,5 +41,6 @@ class WaiterActor extends Actor with ActorLogging {
 
 object WaiterActor {
   val props = Props[WaiterActor]
-  case object BreakfastRequest
+  case object ChefRequest
+  case class Elaborate(val plate: Menu)
 }
