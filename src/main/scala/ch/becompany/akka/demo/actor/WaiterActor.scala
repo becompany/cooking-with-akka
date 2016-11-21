@@ -1,5 +1,7 @@
 package ch.becompany.akka.demo.actor
 
+import java.util.concurrent.{TimeUnit, TimeoutException}
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import akka.actor._
 import ch.becompany.akka.demo.actor.WaiterActor.{ChefRequest, Elaborate}
@@ -19,20 +21,30 @@ class WaiterActor extends Actor with ActorLogging {
     case CustomerActor.Request(name, request) => {
       log.info("Waiter got a breakfast request from '{}'.", name)
       val customer = sender()
-      context.parent ? ChefRequest onComplete {
-        case Success(chefActor: ActorRef) =>
-          log.info("The waiter got the assigned chef.")
-          chefActor ? Elaborate(BarActor.Menu.Breakfast) onComplete {
-            case Success(breakfast) => customer ! breakfast
+      try {
+        context.system.awaitTermination(Duration.create(1, TimeUnit.SECONDS))
+      } catch {
+        case ex: TimeoutException =>
+          context.parent ? ChefRequest onComplete {
+            case Success(chefActor: ActorRef) =>
+              log.info("The waiter got the assigned chef.")
+              chefActor ? Elaborate(BarActor.Menu.Breakfast) onComplete {
+                case Success(breakfast) =>
+                  try {
+                    context.system.awaitTermination(Duration.create(1, TimeUnit.SECONDS))
+                  } catch {
+                    case ex: TimeoutException => customer ! breakfast
+                  }
+                case Failure(ex) => {
+                  log.error("Error dispatching the breakfast.", ex)
+                  customer ! akka.actor.Status.Failure(ex)
+                }
+              }
             case Failure(ex) => {
-              log.error("Error dispatching the breakfast.", ex)
+              log.error("Error requesting a free chef.", ex)
               customer ! akka.actor.Status.Failure(ex)
             }
-        }
-        case Failure(ex) => {
-          log.error("Error requesting a free chef.", ex)
-          customer ! akka.actor.Status.Failure(ex)
-        }
+          }
       }
     }
     case _ => Unit

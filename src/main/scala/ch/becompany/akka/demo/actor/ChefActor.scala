@@ -1,5 +1,7 @@
 package ch.becompany.akka.demo.actor
 
+import java.util.concurrent.{TimeUnit, TimeoutException}
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 
@@ -24,7 +26,13 @@ class ChefActor extends Actor with ActorLogging {
       context.parent ? IngredientsRequest(plate.ingredients) onComplete {
         case Success(_) =>
           log.info("Breakfast elaborated.")
-          waiterActor ! plate
+          try {
+            context.system.awaitTermination(Duration.create(2, TimeUnit.SECONDS))
+          } catch {
+            case ex: TimeoutException => waiterActor ! plate
+            case ex => log.error("Unable to elaborate the plate.", ex)
+          }
+
         case Failure(ex) =>
           log.error("Timeout requesting the breakfast ingredients.", ex)
           waiterActor ! akka.actor.Status.Failure(ex)

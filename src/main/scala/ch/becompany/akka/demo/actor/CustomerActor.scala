@@ -1,6 +1,8 @@
 package ch.becompany.akka.demo.actor
 
 
+import java.util.concurrent.{TimeUnit, TimeoutException}
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import akka.pattern.ask
@@ -47,6 +49,11 @@ class CustomerActor(val name: String) extends Actor with ActorLogging {
     future.onComplete({
       case Success(_) => {
         log.info("The customer '{}' got a breakfast. Eating...", name)
+        try {
+          context.system.awaitTermination(Duration.create(5, TimeUnit.SECONDS))
+        } catch {
+          case _ => log.info("The customer '{}' finish to eat the breakfast. Leaving...", name)
+        }
         barActor ! Leaving(name, true)
         context.stop(self)
       }
