@@ -13,7 +13,7 @@ import scala.concurrent.duration.Duration
 object ApplicationMain extends App {
   val system = ActorSystem("BreakfastDemo")
   val streetActor = system.actorOf(StreetActor.props(15), "streetActor")
-  val customerInterval = Duration.create(1000, TimeUnit.MILLISECONDS)
+  val customerInterval = Duration.create(500, TimeUnit.MILLISECONDS)
 
   streetActor ! StreetActor.Initialize
   //system.scheduler.scheduleOnce(Duration.Zero, new CustomerService(streetActor))
