@@ -12,12 +12,11 @@ class CustomerService (val streetActor: ActorRef) extends Runnable {
 
   val namesUrl = url("http://uinames.com/api/?amount=25")
   var names: List[String] = Nil
-  var running: Boolean = false
+  var namesFuture: Future[String] = Http(namesUrl OK as.String)
 
   override def run(): Unit = {
-    if (!running && names.isEmpty) {
-      running = true
-      Http(namesUrl OK as.String).andThen {
+    if (names.isEmpty) {
+      namesFuture.andThen {
         case Success(jsonString) =>
           names = Parse.parseWith[List[String]](jsonString, json => json.arrayOrEmpty.map {
             jsonObject =>
