@@ -3,7 +3,9 @@ package ch.becompany.akka.demo.actor
 import scala.collection.mutable.Set
 import scala.collection.mutable.Map
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import akka.routing.RoundRobinPool
 import ch.becompany.akka.demo.Ingredients
+
 import scala.concurrent.duration._
 import akka.util.Timeout
 
@@ -21,7 +23,7 @@ class BarActor extends Actor with ActorLogging {
 
   val barReferences: BarReferences = BarReferences(
     context.actorOf(ChefActor.props),
-    context.actorOf(WaiterActor.props))
+    context.actorOf(RoundRobinPool(2).props(WaiterActor.props)))
 
   override def receive = {
     case StreetActor.Initialize =>

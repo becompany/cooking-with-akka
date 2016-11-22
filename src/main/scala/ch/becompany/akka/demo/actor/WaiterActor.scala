@@ -25,7 +25,7 @@ class WaiterActor extends Actor with ActorLogging {
         context.system.awaitTermination(Duration.create(1, TimeUnit.SECONDS))
       } catch {
         case ex: TimeoutException =>
-          context.parent ? ChefRequest onComplete {
+          context.actorSelection("../..") ? ChefRequest onComplete {
             case Success(chefActor: ActorRef) =>
               log.info("The waiter got the assigned chef.")
               chefActor ? Elaborate(BarActor.Menu.Breakfast) onComplete {
