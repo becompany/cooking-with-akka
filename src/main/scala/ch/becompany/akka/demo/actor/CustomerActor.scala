@@ -46,7 +46,7 @@ class CustomerActor(val name: String) extends Actor with ActorLogging {
   }
 
   def requestBreakfast(waiterActor: ActorRef): Unit = {
-    log.info("Request a breakfast. from bar {}", barActor)
+    log.info("Request a breakfast.")
     val future = waiterActor ? Request(name, Seq(BarActor.Menu.Breakfast))
     future.onComplete({
       case Success(_) => {
