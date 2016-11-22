@@ -13,7 +13,7 @@ class BarActor extends Actor with ActorLogging {
 
   implicit val timeout = Timeout(5 seconds)
 
-  val stock = Map[Ingredients, Int](Coffee -> 15, Egg -> 15, Water -> 15)
+  val stock = Map[Ingredients, Int](Coffee -> 100, Egg -> 100, Water -> 100)
   val places = Set[ActorRef]()
   val maximum = 15
   var happyCustomers = 0
