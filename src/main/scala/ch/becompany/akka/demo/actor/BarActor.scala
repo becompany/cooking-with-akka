@@ -22,7 +22,7 @@ class BarActor extends Actor with ActorLogging {
   var unhappyCustomers = 0
 
   val barReferences: BarReferences = BarReferences(
-    context.actorOf(ChefActor.props),
+    context.actorOf(RoundRobinPool(2).props(ChefActor.props)),
     context.actorOf(RoundRobinPool(2).props(WaiterActor.props)))
 
   override def receive = {
@@ -33,7 +33,7 @@ class BarActor extends Actor with ActorLogging {
       if (places.size < maximum) {
         places += customer
         log.info("Places available: {}", maximum - places.size )
-        sender() ! barReferences.waiterActor
+        sender() ! (barReferences.waiterActor, self)
       }
     case WaiterActor.ChefRequest =>
       log.info("Bar is dispatching a Chef request.")

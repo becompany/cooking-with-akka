@@ -23,7 +23,7 @@ class ChefActor extends Actor with ActorLogging {
     case WaiterActor.Elaborate(plate) => {
       val waiterActor = sender()
       log.info("The chef got a request.")
-      context.parent ? IngredientsRequest(plate.ingredients) onComplete {
+      context.actorSelection("../..") ? IngredientsRequest(plate.ingredients) onComplete {
         case Success(_) =>
           log.info("Breakfast elaborated.")
           try {

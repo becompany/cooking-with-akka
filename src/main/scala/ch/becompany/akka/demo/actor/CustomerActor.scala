@@ -6,7 +6,7 @@ import java.util.concurrent.{TimeUnit, TimeoutException}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import akka.pattern.ask
-import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
+import akka.actor.{Actor, ActorLogging, ActorPath, ActorRef, Props, Terminated}
 import akka.util.Timeout
 import ch.becompany.akka.demo.actor.StreetActor.LeaveQueue
 
@@ -15,10 +15,11 @@ import scala.util.{Failure, Success}
 class CustomerActor(val name: String) extends Actor with ActorLogging {
   import CustomerActor._
   implicit val timeout = Timeout(5 seconds)
+  var barActor: ActorRef = Actor.noSender
 
   override def receive = {
     case StreetActor.Initialize =>
-        context.actorSelection("/user/streetActor/bar*").resolveOne().onComplete
+        context.actorSelection("/user/streetActor/bars").resolveOne().onComplete
       {
         case Success(ref) =>
           context.watch(ref)
@@ -26,9 +27,10 @@ class CustomerActor(val name: String) extends Actor with ActorLogging {
             log.info("Customer '{}' requests place in the Bar.", name)
             val future = ref ? TableRequest(self)
             future onComplete {
-              case Success(waiterActor: ActorRef) => {
+              case Success((waiterActor: ActorRef, barActor: ActorRef)) => {
                 context.parent ! LeaveQueue
-                requestBreakfast(waiterActor, ref)
+                this.barActor = barActor
+                requestBreakfast(waiterActor)
               }
               case Failure(msg) => {
                 context.parent ! LeaveQueue
@@ -43,8 +45,8 @@ class CustomerActor(val name: String) extends Actor with ActorLogging {
     case _ => Unit
   }
 
-  def requestBreakfast(waiterActor: ActorRef, barActor: ActorRef): Unit = {
-    log.info("Request a breakfast.")
+  def requestBreakfast(waiterActor: ActorRef): Unit = {
+    log.info("Request a breakfast. from bar {}", barActor)
     val future = waiterActor ? Request(name, Seq(BarActor.Menu.Breakfast))
     future.onComplete({
       case Success(_) => {

@@ -2,21 +2,22 @@ package ch.becompany.akka.demo.actor
 
 import scala.collection.mutable.Set
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import ch.becompany.akka.demo.actor.StreetActor.{Initialize, LeaveQueue}
+import akka.routing._
 
-class StreetActor(val maximum: Int = 15, val barsNumber: Int = 1) extends Actor with ActorLogging {
-  var bars = scala.collection.mutable.ArrayBuffer.empty[ActorRef]
+import scala.concurrent.duration._
+import ch.becompany.akka.demo.actor.StreetActor.{Initialize, LeaveQueue}
+import ch.becompany.akka.demo.routing.SequentialPool
+
+class StreetActor(val maximum: Int = 15, val barsNumber: Int) extends Actor with ActorLogging {
+  val bars = context.actorOf(SequentialPool(barsNumber).props(BarActor.props), "bars")
   var queue = Set[ActorRef]()
   var counter = 0
 
   override def receive = {
     case Initialize => {
       log.info("Street is being created.")
-      for (i <- 0 until barsNumber ) {
-        bars += context.actorOf(BarActor.props, "bar" + i)
-        log.info(s"Created 'bar$i'.")
-      }
-      bars map (actor => actor ! Initialize)
+      log.info("Created {} bars.", barsNumber)
+      bars ! Broadcast(Initialize)
     }
     case LeaveQueue => {
       queue.remove(sender())
@@ -26,19 +27,19 @@ class StreetActor(val maximum: Int = 15, val barsNumber: Int = 1) extends Actor 
         counter += 1
         val customerActor = context.actorOf(CustomerActor.props(customerName), "customer" + counter)
         queue += customerActor
-        log.info(s"The customer '$customerName' is in the queue. Queue size: ${queue.size}")
+        log.info(s"The customer '{}' is in the queue. Queue size: {}", customerName, queue.size)
 
         customerActor ! Initialize
       } else {
-        log.warning(s"Customer '$customerName' has to leave because queue is full.")
+        log.warning(s"Customer '{}' has to leave because queue is full.", customerName)
       }
     }
-    case unknown => log.error(s"Actor name '$unknown' not recognized.")
+    case unknown => log.error(s"Actor name '{}' not recognized.", unknown)
   }
 }
 
 object StreetActor {
-  def props(maximum: Int) = Props(new StreetActor(maximum))
+  def props(maximum: Int, barsNumber: Int = 1) = Props(new StreetActor(maximum, barsNumber))
   case object Initialize
   case object LeaveQueue
 }
